@@ -19,6 +19,7 @@ import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,6 +27,14 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+
+import com.example.android.pets.data.PetContract;
+
+import com.example.android.pets.data.PetContract.PetEntry;
+
+import static com.example.android.pets.data.PetContract.PetEntry.GENDER_FEMALE;
+import static com.example.android.pets.data.PetContract.PetEntry.GENDER_MALE;
+import static com.example.android.pets.data.PetContract.PetEntry.GENDER_UNKNOWN;
 
 /**
  * Allows user to create a new pet or edit an existing one.
@@ -62,6 +71,7 @@ public class EditorActivity extends AppCompatActivity {
         mGenderSpinner = (Spinner) findViewById(R.id.spinner_gender);
 
         setupSpinner();
+        Log.d("EditorActivity", "onCreate");
     }
 
     /**
@@ -86,11 +96,11 @@ public class EditorActivity extends AppCompatActivity {
                 String selection = (String) parent.getItemAtPosition(position);
                 if (!TextUtils.isEmpty(selection)) {
                     if (selection.equals(getString(R.string.gender_male))) {
-                        mGender = 1; // Male
+                        mGender = GENDER_MALE; // Male
                     } else if (selection.equals(getString(R.string.gender_female))) {
-                        mGender = 2; // Female
+                        mGender = GENDER_FEMALE; // Female
                     } else {
-                        mGender = 0; // Unknown
+                        mGender = GENDER_UNKNOWN; // Unknown
                     }
                 }
             }
