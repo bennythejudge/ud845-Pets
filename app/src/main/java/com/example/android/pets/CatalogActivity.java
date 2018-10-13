@@ -88,6 +88,9 @@ public class CatalogActivity extends AppCompatActivity {
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
                 // Do nothing for now
+                Log.d("catalog_activity", "about to truncate the pets table");
+                delete_all_rows();
+                displayDatabaseInfo();
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -110,6 +113,21 @@ public class CatalogActivity extends AppCompatActivity {
         long newRowId = db.insert(PetContract.PetEntry.TABLE_NAME, null, values);
         Log.d("insertPet","just added a row" );
     }
+
+    /****
+     * delete_all_rows
+     * Delete all rows in the pets tables
+     * cleanup the db
+     */
+    private void delete_all_rows() {
+        Log.d("delete_all_rows", "trying to delete all row");
+        // Create database helper
+        PetDbHelper mDbHelper = new PetDbHelper(this);
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        db.delete(PetContract.PetEntry.TABLE_NAME, null, null);
+        db.close();
+    }
+
 
     /**
      * Temporary helper method to display information in the onscreen TextView about the state of

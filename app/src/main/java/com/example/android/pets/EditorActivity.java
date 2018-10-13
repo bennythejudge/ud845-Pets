@@ -143,6 +143,7 @@ public class EditorActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, "Pet " + nameString + " saved with rowId: " + newRowId, Toast.LENGTH_LONG).show();
         }
+        db.close();
     }
 
     @Override
