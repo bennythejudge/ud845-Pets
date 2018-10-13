@@ -141,7 +141,7 @@ public class EditorActivity extends AppCompatActivity {
             // error!
             Toast.makeText(this, "Error when saving Pet", Toast.LENGTH_LONG).show();
         } else {
-            Toast.makeText(this, "Pet saved with rowId: " + newRowId, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Pet " + nameString + " saved with rowId: " + newRowId, Toast.LENGTH_LONG).show();
         }
     }
 
