@@ -27,9 +27,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract;
 import com.example.android.pets.data.PetDbHelper;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Displays list of pets that were entered and stored in the app.
@@ -82,7 +86,7 @@ public class CatalogActivity extends AppCompatActivity {
             case R.id.action_insert_dummy_data:
                 // Do nothing for now
                 Log.d("onOptionsItemSelected", "dummy data!!!!");
-                insertPet();
+                insertPets();
                 displayDatabaseInfo();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
@@ -96,10 +100,12 @@ public class CatalogActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void insertPet() {
+    private void insertPets() {
+        long newRowId;
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(PetContract.PetEntry.COLUMN_PET_NAME, "Toto");
+        String name = randomIdentifier();
+        values.put(PetContract.PetEntry.COLUMN_PET_NAME, name);
         values.put(PetContract.PetEntry.COLUMN_PET_BREED, "Terrier");
         values.put(PetContract.PetEntry.COLUMN_PET_GENDER, PetContract.PetEntry.GENDER_MALE);
         values.put(PetContract.PetEntry.COLUMN_PET_WEIGHT, 7);
@@ -110,7 +116,12 @@ public class CatalogActivity extends AppCompatActivity {
         // this is set to "null", then the framework will not insert a row when
         // there are no values).
         // The third argument is the ContentValues object containing the info for Toto.
-        long newRowId = db.insert(PetContract.PetEntry.TABLE_NAME, null, values);
+        newRowId = db.insert(PetContract.PetEntry.TABLE_NAME, null, values);
+        values.put(PetContract.PetEntry.COLUMN_PET_NAME, name);
+        values.put(PetContract.PetEntry.COLUMN_PET_BREED, "bastardino");
+        values.put(PetContract.PetEntry.COLUMN_PET_GENDER, PetContract.PetEntry.GENDER_FEMALE);
+        values.put(PetContract.PetEntry.COLUMN_PET_WEIGHT, 5);
+        newRowId = db.insert(PetContract.PetEntry.TABLE_NAME, null, values);
         Log.d("insertPet","just added a row" );
     }
 
@@ -128,6 +139,24 @@ public class CatalogActivity extends AppCompatActivity {
         db.close();
     }
 
+    // class variable
+    final String lexicon = "ABCDEFGHIJKLMNOPQRSTUVWXYZ12345674890";
+    final java.util.Random rand = new java.util.Random();
+    // consider using a Map<String,Boolean> to say whether the identifier is being used or not
+    final Set<String> identifiers = new HashSet<String>();
+    public String randomIdentifier() {
+        StringBuilder builder = new StringBuilder();
+        while(builder.toString().length() == 0) {
+            int length = rand.nextInt(5)+5;
+            for(int i = 0; i < length; i++) {
+                builder.append(lexicon.charAt(rand.nextInt(lexicon.length())));
+            }
+            if(identifiers.contains(builder.toString())) {
+                builder = new StringBuilder();
+            }
+        }
+        return builder.toString();
+    }
 
     /**
      * Temporary helper method to display information in the onscreen TextView about the state of
@@ -138,23 +167,69 @@ public class CatalogActivity extends AppCompatActivity {
 //        // and pass the context, which is the current activity.
 //        PetDbHelper mDbHelper = new PetDbHelper(this);
 
+        int idColumnIndex = 0;
+        int nameColumnIndex = 1;
+        int breedColumnIndex = 2;
+        int genderColumnIndex = 3;
+        int weightColumIndex = 4;
+
         // Create and/or open a database to read from it
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
-        // Perform this raw SQL query "SELECT * FROM pets"
-        // to get a Cursor that contains all rows from the pets table.
-        Cursor cursor = db.rawQuery("SELECT * FROM " + PetContract.PetEntry.TABLE_NAME, null);
+        String[] projection = {
+                PetContract.PetEntry._ID,
+                PetContract.PetEntry.COLUMN_PET_NAME,
+                PetContract.PetEntry.COLUMN_PET_BREED,
+                PetContract.PetEntry.COLUMN_PET_GENDER,
+                PetContract.PetEntry.COLUMN_PET_WEIGHT
+        };
+
+        // Filter results WHERE "title" = 'My Title'
+        String selection = null;
+
+        // How you want the results sorted in the resulting Cursor
+        String sortOrder =
+                PetContract.PetEntry.COLUMN_PET_NAME + " DESC";
+
+        Cursor cursor = db.query(
+                PetContract.PetEntry.TABLE_NAME,
+                projection,              // The array of columns to return (pass null to get all)
+                selection,               // The columns for the WHERE clause
+                null,       // The values for the WHERE clause
+                null,           // don't group the rows
+                null,            // don't filter by row groups
+                sortOrder               // The sort order
+        );
+        Log.d("displayDatabaseInfo", "after query");
         try {
-            // Display the number of rows in the Cursor (which reflects the number of rows in the
-            // pets table in the database).
             TextView displayView = (TextView) findViewById(R.id.text_view_pet);
-            displayView.setText("Number of rows in pets database table: " + cursor.getCount());
+            if (cursor.getCount() > 0) {
+                displayView.setText("Number of rows in pets database table: " + cursor.getCount());
+                displayView.append(("\n" + "_id" + " - " + "Name" + " - " + "Breed" + " - " + "Gender" + " - " + " Weight"));
+                while (cursor.moveToNext()) {
+                    int currentID = cursor.getInt(idColumnIndex);
+                    String currentName = cursor.getString(nameColumnIndex);
+                    String currentBreed = cursor.getString(breedColumnIndex);
+                    int currentGenderInt = cursor.getInt(genderColumnIndex);
+                    String currentGender;
+                    if (currentGenderInt == 1) {
+                        currentGender = "Male";
+                    } else if (currentGenderInt == 2) {
+                        currentGender = "Female";
+                    } else {
+                        currentGender = "Unknown";
+                    }
+                    String currentWeight = cursor.getString(weightColumIndex);
+                    displayView.append(("\n" + currentID + " - " +
+                            currentName + " - " + currentBreed + " - " +
+                            currentGender + " - " + currentWeight));
+                }
+            } else {
+                Toast.makeText(this,"No pets found in DB", Toast.LENGTH_LONG ).show();
+                displayView.setText("Number of rows in pets database table: " + cursor.getCount());
+            }
         } finally {
-            // Always close the cursor when you're done reading from it. This releases all its
-            // resources and makes it invalid.
             cursor.close();
         }
     }
-
-
 }
