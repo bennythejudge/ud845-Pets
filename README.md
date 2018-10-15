@@ -1,6 +1,8 @@
 Pets App
 ===================================
 
+[![GuardRails badge](https://badges.production.guardrails.io/bennythejudge/ud845-Pets.svg)](https://www.guardrails.io)
+
 This app displays a list of pets and their related data that the user inputs.
 Used in a Udacity course in the Android Basics Nanodegree by Google.
 
